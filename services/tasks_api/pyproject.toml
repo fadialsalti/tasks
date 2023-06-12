@@ -8,6 +8,9 @@ packages = [{include = "tasks_api"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0"
+fastapi = "^0.97.0"
+uvicorn = "^0.22.0"
+httpx = "^0.24.1"
 
 
 [tool.poetry.group.dev.dependencies]
