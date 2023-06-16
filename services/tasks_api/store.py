@@ -1,10 +1,11 @@
+import datetime
 from uuid import UUID
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
 from models import Task, TaskStatus
-import datetime
+
 
 class TaskStore:
     def __init__(self, table_name):
@@ -41,7 +42,7 @@ class TaskStore:
             owner=record["Item"]["owner"],
             status=TaskStatus[record["Item"]["status"]],
         )
-    
+
     def list_open(self, owner):
         return self._list_by_status(owner, TaskStatus.OPEN)
 
