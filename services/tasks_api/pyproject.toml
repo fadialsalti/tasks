@@ -13,6 +13,7 @@ uvicorn = "^0.22.0"
 httpx = "^0.24.1"
 mangum = "^0.17.0"
 boto3 = "^1.26.153"
+pyjwt = "^2.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
