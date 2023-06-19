@@ -1,5 +1,5 @@
 ---
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   Domain:
     Type: String
@@ -10,22 +10,20 @@ Resources:
   TasksHostedZone:
     Type: AWS::Route53::HostedZone
     Properties:
-      HostedZoneConfig: HostedZoneConfig
+      HostedZoneConfig:
+        HostedZoneConfig
       Name:
         Ref: Domain
-  CloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: "Tasks UI"
-  MyS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: development-tasks-api-shdfkljekd
-  VueAppS3Policy:
+  CloudFrontOriginAccessIdentity:  # new
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: "Tasks UI"
+  VueAppS3Policy:  # new
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref MyS3Bucket
+      Bucket:
+        Fn::ImportValue: s3-development-tasks-api-name
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -33,12 +31,12 @@ Resources:
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
             Action: "s3:GetObject"
-            Resource: !Join
-              - ""
-              - - "arn:aws:s3:::"
-                - !Ref MyS3Bucket
-                - "/*"
-  APICachePolicy:
+            Resource:
+              Fn::Join:
+                - '/'
+                - - Fn::ImportValue: s3-development-tasks-api-arn
+                  - '*'
+  APICachePolicy:  # new
     Type: AWS::CloudFront::CachePolicy
     Properties:
       CachePolicyConfig:
@@ -57,7 +55,7 @@ Resources:
               - Content-Type
           QueryStringsConfig:
             QueryStringBehavior: none
-  VueAppCachePolicy:
+  VueAppCachePolicy:  # new
     Type: AWS::CloudFront::CachePolicy
     Properties:
       CachePolicyConfig:
@@ -75,26 +73,31 @@ Resources:
               - Content-Type
           QueryStringsConfig:
             QueryStringBehavior: none
-  TasksCloudFront:
+  TasksCloudFront:  # new
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: development-tasks-api-shdfkljekd.s3-website.eu-central-1.amazonaws.com
+          - DomainName:
+              Fn::Join:
+                - '.'
+                - - Fn::ImportValue: s3-development-tasks-api-name
+                  - 's3.amazonaws.com'
             Id: vueApp
             S3OriginConfig:
               OriginAccessIdentity:
-                Fn::Join:
-                  - ""
-                  - - "origin-access-identity/cloudfront/"
-                    - Ref: CloudFrontOriginAccessIdentity
-          - DomainName:  https://w1mkn2v4r9.execute-api.eu-central-1.amazonaws.com/development
+                  Fn::Join:
+                      - ''
+                      -
+                        - 'origin-access-identity/cloudfront/'
+                        - Ref: CloudFrontOriginAccessIdentity
+          - DomainName: https://w1mkn2v4r9.execute-api.eu-central-1.amazonaws.com/development
             Id: api
             OriginPath: /development
             CustomOriginConfig:
-              HTTPSPort: "443"
+              HTTPSPort: '443'
               OriginProtocolPolicy: https-only
-        Enabled: "true"
+        Enabled: 'true'
         DefaultRootObject: index.html
         Aliases:
           - Ref: Domain
@@ -113,13 +116,13 @@ Resources:
             Ref: VueAppCachePolicy
         CacheBehaviors:
           - AllowedMethods:
-              - DELETE
-              - GET
-              - HEAD
-              - OPTIONS
-              - PATCH
-              - POST
-              - PUT
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
             CachePolicyId:
               Ref: APICachePolicy
             PathPattern: api/*
@@ -129,12 +132,12 @@ Resources:
           AcmCertificateArn: arn:aws:acm:us-east-1:204416112412:certificate/e1344b46-e220-4eb7-8e72-3d182f8dcb64
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
-  CloudFrontDNSRecord:
+  CloudFrontDNSRecord:  # new
     Type: AWS::Route53::RecordSet
     Properties:
       AliasTarget:
         DNSName: !GetAtt TasksCloudFront.DomainName
-        HostedZoneId: Z2FDTNDATAQYW2 # See docs for more details https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+        HostedZoneId: Z2FDTNDATAQYW2  # See docs for more details https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
       HostedZoneId:
         Ref: TasksHostedZone
       Name:
