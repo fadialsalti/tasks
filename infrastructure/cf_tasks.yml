@@ -80,11 +80,7 @@ Resources:
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName:
-              Fn::Join:
-                - "."
-                - - Fn::ImportValue: s3-development-tasks-api-name
-                  - "s3.amazonaws.com"
+          - DomainName: development-tasks-api-shdfkljekd.s3-website.eu-central-1.amazonaws.com
             Id: vueApp
             S3OriginConfig:
               OriginAccessIdentity:
