@@ -18,11 +18,14 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "Tasks UI"
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: development-tasks-api-shdfkljekd
   VueAppS3Policy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket:
-        Fn::ImportValue: s3-development-tasks-api-name
+      Bucket: !Ref MyS3Bucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -30,11 +33,11 @@ Resources:
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
             Action: "s3:GetObject"
-            Resource:
-              Fn::Join:
-                - "/"
-                - - Fn::ImportValue: s3-development-tasks-api-arn
-                  - "*"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref MyS3Bucket
+                - "/*"
   APICachePolicy:
     Type: AWS::CloudFront::CachePolicy
     Properties:
