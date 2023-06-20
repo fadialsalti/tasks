@@ -14,12 +14,12 @@ Resources:
         HostedZoneConfig
       Name:
         Ref: Domain
-  CloudFrontOriginAccessIdentity:  # new
+  CloudFrontOriginAccessIdentity:  
       Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
       Properties:
         CloudFrontOriginAccessIdentityConfig:
           Comment: "Tasks UI"
-  VueAppS3Policy:  # new
+  VueAppS3Policy: 
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket:
@@ -36,7 +36,7 @@ Resources:
                 - '/'
                 - - Fn::ImportValue: s3-development-tasks-api-shdfkljekd-arn
                   - '*'
-  APICachePolicy:  # new
+  APICachePolicy: 
     Type: AWS::CloudFront::CachePolicy
     Properties:
       CachePolicyConfig:
@@ -55,7 +55,7 @@ Resources:
               - Content-Type
           QueryStringsConfig:
             QueryStringBehavior: none
-  VueAppCachePolicy:  # new
+  VueAppCachePolicy: 
     Type: AWS::CloudFront::CachePolicy
     Properties:
       CachePolicyConfig:
@@ -73,7 +73,7 @@ Resources:
               - Content-Type
           QueryStringsConfig:
             QueryStringBehavior: none
-  TasksCloudFront:  # new
+  TasksCloudFront: 
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -132,7 +132,7 @@ Resources:
           AcmCertificateArn: arn:aws:acm:us-east-1:204416112412:certificate/e1344b46-e220-4eb7-8e72-3d182f8dcb64
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
-  CloudFrontDNSRecord:  # new
+  CloudFrontDNSRecord: 
     Type: AWS::Route53::RecordSet
     Properties:
       AliasTarget:
@@ -143,7 +143,55 @@ Resources:
       Name:
         Ref: Domain
       Type: A
-
+  CloudWatchAutoAlarmsSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: CloudWatchAutoAlarms SNS Notification Topic
+      TopicName: CloudWatchAutoAlarmsSNSTopic
+  CloudWatchAutoAlarmsSNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref CloudWatchAutoAlarmsSNSTopic
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: SSEAndSSLPolicy
+        Statement:
+          - Sid: Allow_Publish_Alarms
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudwatch.amazonaws.com
+            Action: sns:Publish
+            Resource:
+              - !Join
+                - ':'
+                - - 'arn'
+                  - !Ref AWS::Partition
+                  - 'sns'
+                  - !Ref AWS::Region
+                  - !Ref AWS::AccountId
+                  - !GetAtt CloudWatchAutoAlarmsSNSTopic.TopicName
+  EmailSNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: eng_fadi77@tasks-dev.de
+      Protocol: email
+      TopicArn: !Ref CloudWatchAutoAlarmsSNSTopic
+  TooManyErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Too many errors on API Lambda
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref CloudWatchAutoAlarmsSNSTopic
+        
 Outputs:
   HostedZoneId:
     Description: Hosted zone ID
