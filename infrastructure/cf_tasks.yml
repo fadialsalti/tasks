@@ -175,7 +175,7 @@ Resources:
   EmailSNSSubscription:
     Type: AWS::SNS::Subscription
     Properties:
-      Endpoint: eng_fadi77@tasks-dev.de
+      Endpoint: eng_fadi77@hotmail.com
       Protocol: email
       TopicArn: !Ref CloudWatchAutoAlarmsSNSTopic
   TooManyErrorsAlarm:
@@ -191,7 +191,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       AlarmActions:
         - !Ref CloudWatchAutoAlarmsSNSTopic
-        
+
 Outputs:
   HostedZoneId:
     Description: Hosted zone ID
